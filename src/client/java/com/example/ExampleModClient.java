@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.joml.Vector3d;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -26,6 +28,7 @@ import com.example.mixin.client.BufferBuilderAccessor;
 import com.example.mixin.client.BufferBuilderStorageAccessor;
 import com.example.mixin.client.ImmediateAccessor;
 import com.example.mixin.client.OutlineVertexConsumerProviderAccessor;
+import com.example.mixin.client.WorldRendererAccessor;
 
 public class ExampleModClient implements ClientModInitializer {
 	Map<Entity, Context> contexts = new HashMap<>();
@@ -133,8 +136,8 @@ public class ExampleModClient implements ClientModInitializer {
 
 						// Get context
 						if (!contexts.containsKey(entity)) {
-							contexts.put(entity, new Context(new WindowFramebuffer(window.getFramebufferWidth(),
-									window.getFramebufferHeight()), new BufferBuilderStorage()));
+							contexts.put(entity, new Context(new WindowFramebuffer(window.getFramebufferWidth() / 3,
+									window.getFramebufferHeight() / 3), new BufferBuilderStorage()));
 						}
 						Context context = contexts.get(entity);
 
@@ -142,26 +145,32 @@ public class ExampleModClient implements ClientModInitializer {
 						var oldBufferBuilders = new BufferBuilderStorage();
 						cloneBufferBuilderStorage(client.getBufferBuilders(), oldBufferBuilders);
 
+						var oldViewBobbing = client.options.getBobView().getValue();
+						var oldCapturedFrustum = ((WorldRendererAccessor) client.worldRenderer).getCapturedFrustum();
+						var oldCapturedFrustumPosition = new Vector3d(0, 0, 0);
+						oldCapturedFrustumPosition
+								.set(((WorldRendererAccessor) client.worldRenderer).getCapturedFrustumPosition());
+
 						// Override
 						OverrideFramebuffer.framebuffer = context.getFramebuffer();
 						cloneBufferBuilderStorage(context.getBufferBuilders(), client.getBufferBuilders());
 						client.setCameraEntity(entity);
 						client.gameRenderer.setRenderHand(false);
+						client.options.getBobView().setValue(true);
 
-						// RenderSystem.clear(GlConst.GL_DEPTH_BUFFER_BIT | GlConst.GL_COLOR_BUFFER_BIT,
-						// false);
 						context.getFramebuffer().beginWrite(true);
-						// BackgroundRenderer.clearFog();
-						// RenderSystem.enableCull();
-
 						var matrices = new MatrixStack();
-						var tickDelta = 1;
+						var tickDelta = 0;
 						client.gameRenderer.renderWorld(tickDelta, Util.getMeasuringTimeNano(), matrices);
 						context.getFramebuffer().endWrite();
 
 						// Reset
+						client.options.getBobView().setValue(oldViewBobbing);
 						client.gameRenderer.setRenderHand(true);
 						client.setCameraEntity(client.player);
+						((WorldRendererAccessor) client.worldRenderer).setCapturedFrustum(oldCapturedFrustum);
+						((WorldRendererAccessor) client.worldRenderer)
+								.getCapturedFrustumPosition().set(oldCapturedFrustumPosition);
 						cloneBufferBuilderStorage(client.getBufferBuilders(), context.getBufferBuilders());
 						cloneBufferBuilderStorage(oldBufferBuilders, client.getBufferBuilders());
 						OverrideFramebuffer.framebuffer = null;
