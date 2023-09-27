@@ -1,6 +1,7 @@
 package com.example;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.entity.EntityDimensions;
@@ -9,6 +10,9 @@ import net.minecraft.entity.SpawnGroup;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,5 +37,21 @@ public class Zommie implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 		FabricDefaultAttributeRegistry.register(EXAMPLE_ZOMBIE, ZommieZombieEntity.createZombieAttributes());
+
+		ServerPlayNetworking.registerGlobalReceiver(RENDER_ZOMBIE_VIEW_PACKET_ID,
+				(server, player, handler, buf, responseSender) -> {
+					buf.readInt(); // Entity id, currently unused
+					byte[] imageBytes = buf.readByteArray();
+					server.execute(() -> {
+						try {
+							// Write image to file
+							Path zommieView = server.getRunDirectory().toPath().resolve("zommieView.png");
+							Files.write(zommieView, imageBytes);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					});
+
+				});
 	}
 }

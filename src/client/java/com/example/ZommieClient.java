@@ -1,36 +1,39 @@
 package com.example;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gl.WindowFramebuffer;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.entity.ZombieEntityRenderer;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.util.Window;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.Util;
+import net.minecraft.network.PacketByteBuf;
 
 public class ZommieClient implements ClientModInitializer {
 	Map<Entity, EntityViewRenderer> entityViewRendererMap = new HashMap<>();
-
-	private static File getScreenshotFilename(File directory) {
-		String string = Util.getFormattedCurrentTime();
-		int i = 1;
-		File file;
-		while ((file = new File(directory, string + (String) (i == 1 ? "" : "_" + i) + ".png")).exists()) {
-			++i;
-		}
-		return file;
-	}
+	FileSystem inMemoryFileSystem = Jimfs.newFileSystem(Configuration.unix());
+	Path viewDirectory = inMemoryFileSystem.getPath("/views");
 
 	@Override
 	public void onInitializeClient() {
+		try {
+			Files.createDirectories(viewDirectory);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		// This entrypoint is suitable for setting up client-specific logic, such as
 		// rendering.
 		EntityRendererRegistry.register(Zommie.EXAMPLE_ZOMBIE, (context) -> {
@@ -64,22 +67,25 @@ public class ZommieClient implements ClientModInitializer {
 
 						NativeImage image = renderer.renderView();
 
-						// Create a new thread to write to file
-						var thread = new Thread(() -> {
-							// Write to file
-							File viewDirectory = new File(client.runDirectory, "zommieView");
-							if (!viewDirectory.exists()) {
-								viewDirectory.mkdir();
+						try {
+							// Write image to in-memory file
+							Path viewFile = inMemoryFileSystem.getPath("/").resolve("view.png");
+							if (Files.exists(viewFile)) {
+								Files.delete(viewFile);
 							}
-							File file = getScreenshotFilename(viewDirectory);
-							try {
-								image.writeTo(file);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						});
-						thread.start();
 
+							image.writeTo(viewFile);
+							byte[] imageBytes = Files.readAllBytes(viewFile);
+
+							PacketByteBuf imageBuf = PacketByteBufs.create();
+							imageBuf.writeInt(entityId);
+
+							// Add image
+							imageBuf.writeByteArray(imageBytes);
+							ClientPlayNetworking.send(Zommie.RENDER_ZOMBIE_VIEW_PACKET_ID, imageBuf);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					});
 				});
 	}
