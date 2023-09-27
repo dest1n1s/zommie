@@ -10,9 +10,9 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
-public class ExampleZombie extends ZombieEntity {
+public class ZommieZombieEntity extends ZombieEntity {
 
-    public ExampleZombie(EntityType<? extends ExampleZombie> entityType, World world) {
+    public ZommieZombieEntity(EntityType<? extends ZommieZombieEntity> entityType, World world) {
         super(entityType, world);
     }
 
@@ -37,8 +37,11 @@ public class ExampleZombie extends ZombieEntity {
             buf.writeInt(this.getId());
 
             // Send packet to the first player
-            ServerPlayNetworking.send(PlayerLookup.tracking((ServerWorld) world, this.getChunkPos()).iterator().next(),
-                    ExampleMod.RENDER_ZOMBIE_VIEW_PACKET_ID, buf);
+            var playerIterator = PlayerLookup.tracking((ServerWorld) world, this.getBlockPos()).iterator();
+            if (!playerIterator.hasNext()) {
+                return;
+            }
+            ServerPlayNetworking.send(playerIterator.next(), Zommie.RENDER_ZOMBIE_VIEW_PACKET_ID, buf);
         }
     }
 }
