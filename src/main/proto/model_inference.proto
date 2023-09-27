@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.example.proto";
+option java_outer_classname = "ModelInferenceProto";
+
+package model_inference;
+
+import "google/protobuf/struct.proto";
+
+service ModelInference {
+  rpc Predict(PredictRequest) returns (PredictResponse) {}
+}
+
+message PredictRequest { bytes view = 1; }
+
+message PredictResponse { repeated Action actions = 1; }
+
+enum ActionType {
+  MOVE = 0;
+  STOP = 1;
+  ROTATE = 2;
+  TARGET = 3;
+  ATTACK = 4;
+  JUMP = 5;
+}
+
+message Action {
+  ActionType type = 1;
+  google.protobuf.Struct params = 2;
+}

@@ -6,7 +6,6 @@ plugins {
 
 version = project.mod_version
 group = project.maven_group
-
 base {
 	archivesName = project.archives_base_name
 }
@@ -79,15 +78,6 @@ protobuf {
     }
     generateProtoTasks {
         all()*.plugins { grpc {} }
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs 'build/generated/source/proto/main/grpc'
-            srcDirs 'build/generated/source/proto/main/java'
-        }
     }
 }
 
