@@ -12,14 +12,54 @@ service ModelInference {
   rpc Predict(PredictRequest) returns (PredictResponse) {}
 }
 
-message PredictRequest { bytes view = 1; }
+message PredictRequest {
+  bytes view = 1;
+  Vec3f position = 2;
+  Vec3f direction = 3;
+  Vec3f velocity = 4;
+  float health = 5;
+  Item hand = 6;
+  repeated Item inventory = 7;
+  Armor armor = 8;
+  optional Entity target = 9;
+}
+
+message Vec3f {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message Item {
+  int32 id = 1;
+  string name = 2;
+  optional google.protobuf.Struct nbt = 3;
+}
+
+message Armor {
+  Item head = 1;
+  Item chest = 2;
+  Item legs = 3;
+  Item feet = 4;
+}
+
+message Entity {
+  int32 id = 1;
+  string type = 2;
+  Vec3f position = 3;
+  Vec3f direction = 4;
+  Vec3f velocity = 5;
+  float health = 6;
+  Item hand = 7;
+  Armor armor = 8;
+}
 
 message PredictResponse { repeated Action actions = 1; }
 
 enum ActionType {
   MOVE = 0;
   STOP = 1;
-  ROTATE = 2;
+  LOOK = 2;
   TARGET = 3;
   ATTACK = 4;
   JUMP = 5;
@@ -27,5 +67,83 @@ enum ActionType {
 
 message Action {
   ActionType type = 1;
-  google.protobuf.Struct params = 2;
+  optional google.protobuf.Struct params = 2;
 }
+
+// The following is the explaination examples of each action type.
+//
+// The MOVE action is used to move the player towards a specific direction
+// or to a specific location.
+//
+// Example 1: Move towards a specific direction. The entity will keep moving
+// towards the direction until the next MOVE or STOP action is received.
+// params: {
+//   "direction": {
+//     "x": 1.0,
+//     "y": 0.0,
+//     "z": 0.0
+//   }
+// }
+//
+// Example 2: Move to a specific location. The location must be reachable and
+// within Manhattan distance of 5 units from the entity's current location.
+// params: {
+//   "location": {
+//     "x": 105.0,
+//     "y": 40.0,
+//     "z": 0.0
+//   }
+// }
+//
+// Example 3: Move towards the target entity.
+// params: {
+//   "target": true
+// }
+//
+// The STOP action is used to stop the entity from moving. It is a simplified
+// version of the MOVE action with a zero direction. This action has no params.
+//
+// The LOOK action is used to change the entity's facing direction.
+//
+// Example 1: Look towards a specific direction.
+// params: {
+//   "direction": {
+//     "x": 1.0,
+//     "y": 0.0,
+//     "z": 0.0
+//   }
+// }
+//
+// Example 2: Look towards a specific location.
+// params: {
+//   "location": {
+//     "x": 105.0,
+//     "y": 40.0,
+//     "z": 0.0
+//   }
+// }
+//
+// Example 3: Look towards the target entity.
+// params: {
+//   "target": true
+// }
+//
+// TARGET action is used to target a specific entity. The target can be used
+// by other actions, including MOVE, LOOK, and ATTACK.
+//
+// Example: Target a k-th nearest living entity of a specific type.
+// The type should be a valid entity type of minecraft, such as "zombie" and
+// "player". If the type is not specified or invalid, all living entities will
+// be considered. If k is not specified, the nearest entity will be considered.
+// params: {
+//   "entity": {
+//     "type": "zombie",
+//     "k": 2
+//   }
+// }
+//
+// ATTACK action is used to attack the target entity. It can only be used
+// after the TARGET has been specified. It has no params.
+//
+// JUMP action is used to make the entity jump. It has no params. If the entity
+// is in water, it will swim up instead of jumping.
