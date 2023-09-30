@@ -4,18 +4,22 @@ import javax.annotation.Nullable;
 
 import com.example.ZommieZombieEntity;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.entity.ai.pathing.EntityNavigation;
+import net.minecraft.entity.ai.pathing.MobNavigation;
 import net.minecraft.util.math.Vec3d;
 
 public class ZommieMoveControl extends ZommieControl {
     private MoveControlType type = MoveControlType.WAIT;
     private @Nullable Vec3d direction = null;
     private double speed;
+    private EntityNavigation navigation;
 
     public ZommieMoveControl(ZommieZombieEntity mob, double speed) {
         super(mob);
         this.speed = speed;
-        mob.getNavigation().setCanSwim(true);
+        this.navigation = new MobNavigation(mob, mob.getWorld());
+        this.navigation.setCanSwim(true);
+        this.navigation.setSpeed(speed);
     }
 
     @Override
@@ -28,7 +32,8 @@ public class ZommieMoveControl extends ZommieControl {
                 break;
             case LOCATION:
             case TARGET:
-                if (mob.getNavigation().isIdle()) {
+                navigation.tick();
+                if (navigation.isIdle()) {
                     type = MoveControlType.WAIT;
                 }
                 break;
@@ -51,17 +56,17 @@ public class ZommieMoveControl extends ZommieControl {
 
     public boolean moveToLocation(Vec3d location) {
         this.type = MoveControlType.LOCATION;
-        return mob.getNavigation().startMovingTo(location.getX(), location.getY(), location.getZ(), speed);
+        return navigation.startMovingTo(location.getX(), location.getY(), location.getZ(), speed);
     }
 
     public boolean moveToTarget() {
         this.type = MoveControlType.TARGET;
-        return mob.getTarget() != null && mob.getNavigation().startMovingTo(mob.getTarget(), speed);
+        return mob.getTarget() != null && navigation.startMovingTo(mob.getTarget(), speed);
     }
 
     public void stop() {
         this.type = MoveControlType.WAIT;
-        mob.getNavigation().stop();
+        navigation.stop();
     }
 
     private enum MoveControlType {

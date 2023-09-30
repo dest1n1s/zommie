@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import javax.annotation.Nullable;
 
 import com.example.ZommieZombieEntity;
+import com.example.ai.control.ZommieAttackControl;
 import com.example.ai.control.ZommieMoveControl;
 import com.example.proto.Action;
 
@@ -15,16 +16,24 @@ public class ActionControlledGoal extends Goal {
     private final ZommieZombieEntity mob;
     private int noActionTimeout = 0;
     private ZommieMoveControl moveControl;
+    private ZommieAttackControl attackControl;
 
     public ActionControlledGoal(ZommieZombieEntity mob) {
         this.mob = mob;
         this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.JUMP, Goal.Control.LOOK, Goal.Control.TARGET));
         this.moveControl = new ZommieMoveControl(mob, 1);
+        this.attackControl = new ZommieAttackControl(mob);
     }
 
     @Override
     public boolean canStart() {
         return noActionTimeout > 0;
+    }
+
+    @Override
+    public boolean tick() {
+        noActionTimeout = Math.max(noActionTimeout - 1, 0);
+
     }
 
     public void executeAction(Action action) {
@@ -37,7 +46,7 @@ public class ActionControlledGoal extends Goal {
                 executeAttackAction(action.getParams());
                 break;
             case STOP:
-                executeIdleAction(action.getParams());
+                executeStopAction(action.getParams());
                 break;
             case LOOK:
                 executeLookAction(action.getParams());
@@ -58,7 +67,7 @@ public class ActionControlledGoal extends Goal {
             } catch (Exception e) {
                 return false;
             }
-            moveControl.setDirection(direction);
+            moveControl.moveAlongDirection(direction);
             return true;
         } else if (actionParams.containsFields("location")) {
             Vec3d location;
@@ -67,9 +76,9 @@ public class ActionControlledGoal extends Goal {
             } catch (Exception e) {
                 return false;
             }
-            return moveControl.setLocation(location);
+            return moveControl.moveToLocation(location);
         } else if (actionParams.containsFields("target")) {
-            return moveControl.setTarget();
+            return moveControl.moveToTarget();
         }
         return false;
     }
