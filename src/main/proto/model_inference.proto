@@ -31,8 +31,8 @@ message Vec3f {
 }
 
 message Item {
-  int32 id = 1;
   string name = 2;
+  int32 count = 4;
   optional google.protobuf.Struct nbt = 3;
 }
 

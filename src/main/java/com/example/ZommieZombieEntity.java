@@ -7,6 +7,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 
 import com.example.ai.ActionControlledGoal;
+import com.example.proto.Action;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -47,5 +48,9 @@ public class ZommieZombieEntity extends ZombieEntity {
             }
             ServerPlayNetworking.send(playerIterator.next(), Zommie.RENDER_ZOMBIE_VIEW_PACKET_ID, buf);
         }
+    }
+
+    public void executeActions(Iterable<Action> actions) {
+        controlledGoal.executeActions(actions);
     }
 }
