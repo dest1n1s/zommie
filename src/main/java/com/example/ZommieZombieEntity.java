@@ -6,19 +6,24 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 
+import com.example.ai.ActionControlledGoal;
+import com.example.proto.Action;
+
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
-public class ExampleZombie extends ZombieEntity {
+public class ZommieZombieEntity extends ZombieEntity {
+    ActionControlledGoal controlledGoal;
 
-    public ExampleZombie(EntityType<? extends ExampleZombie> entityType, World world) {
+    public ZommieZombieEntity(EntityType<? extends ZommieZombieEntity> entityType, World world) {
         super(entityType, world);
     }
 
     @Override
     protected void initGoals() {
-        this.goalSelector.add(0, new PersistantJumpGoal(this));
+        controlledGoal = new ActionControlledGoal(this);
+        this.goalSelector.add(0, controlledGoal);
     }
 
     @Override
@@ -37,8 +42,15 @@ public class ExampleZombie extends ZombieEntity {
             buf.writeInt(this.getId());
 
             // Send packet to the first player
-            ServerPlayNetworking.send(PlayerLookup.tracking((ServerWorld) world, this.getChunkPos()).iterator().next(),
-                    ExampleMod.RENDER_ZOMBIE_VIEW_PACKET_ID, buf);
+            var playerIterator = PlayerLookup.tracking((ServerWorld) world, this.getBlockPos()).iterator();
+            if (!playerIterator.hasNext()) {
+                return;
+            }
+            ServerPlayNetworking.send(playerIterator.next(), Zommie.RENDER_ZOMBIE_VIEW_PACKET_ID, buf);
         }
+    }
+
+    public void executeActions(Iterable<Action> actions) {
+        controlledGoal.executeActions(actions);
     }
 }
