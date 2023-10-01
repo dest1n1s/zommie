@@ -8,6 +8,7 @@ import com.example.ZommieZombieEntity;
 import com.example.ai.control.ZommieAttackControl;
 import com.example.ai.control.ZommieLookControl;
 import com.example.ai.control.ZommieMoveControl;
+import com.example.ai.control.ZommieTargetControl;
 import com.example.proto.Action;
 
 import net.minecraft.entity.ai.goal.Goal;
@@ -19,6 +20,7 @@ public class ActionControlledGoal extends Goal {
     private ZommieMoveControl moveControl;
     private ZommieAttackControl attackControl;
     private ZommieLookControl lookControl;
+    private ZommieTargetControl targetControl;
 
     public ActionControlledGoal(ZommieZombieEntity mob) {
         this.mob = mob;
@@ -26,6 +28,7 @@ public class ActionControlledGoal extends Goal {
         this.moveControl = new ZommieMoveControl(mob, 1);
         this.attackControl = new ZommieAttackControl(mob);
         this.lookControl = new ZommieLookControl(mob);
+        this.targetControl = new ZommieTargetControl(mob);
     }
 
     @Override
@@ -40,6 +43,7 @@ public class ActionControlledGoal extends Goal {
         moveControl.tick();
         attackControl.tick();
         lookControl.tick();
+        targetControl.tick();
     }
 
     public void executeAction(Action action) {
@@ -149,6 +153,32 @@ public class ActionControlledGoal extends Goal {
             return lookControl.lookAtTarget();
         } else if (type == "reset") {
             lookControl.reset();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean executeTargetAction(com.google.protobuf.Struct actionParams) {
+        if (!actionParams.containsFields("type") || !actionParams.getFieldsOrThrow("type").hasStringValue()) {
+            return false;
+        }
+        var type = actionParams.getFieldsOrThrow("type").getStringValue();
+        if (type == "start") {
+            if (!actionParams.containsFields("entity") || !actionParams.getFieldsOrThrow("entity").hasStructValue()){
+                return false;
+            }
+            var entityParams = actionParams.getFieldsOrThrow("entity").getStructValue();
+            if (!entityParams.containsFields("k") || !entityParams.getFieldsOrThrow("k").hasNumberValue()) {
+                return false;
+            }
+            var k = (int) entityParams.getFieldsOrThrow("k").getNumberValue();
+            String targetType = null;
+            if (entityParams.containsFields("type") && entityParams.getFieldsOrThrow("type").hasStringValue()) {
+                targetType = entityParams.getFieldsOrThrow("type").getStringValue();
+            }
+            return targetControl.startTargeting(k, targetType);
+        } else if (type == "stop") {
+            targetControl.stopTargeting();
             return true;
         }
         return false;
