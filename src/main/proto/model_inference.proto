@@ -58,7 +58,6 @@ message PredictResponse { repeated Action actions = 1; }
 
 enum ActionType {
   MOVE = 0;
-  STOP = 1;
   LOOK = 2;
   TARGET = 3;
   ATTACK = 4;
@@ -78,6 +77,7 @@ message Action {
 // Example 1: Move towards a specific direction. The entity will keep moving
 // towards the direction until the next MOVE or STOP action is received.
 // params: {
+//   "type": "direction",
 //   "direction": {
 //     "x": 1.0,
 //     "y": 0.0,
@@ -88,6 +88,7 @@ message Action {
 // Example 2: Move to a specific location. The location must be reachable and
 // within Manhattan distance of 5 units from the entity's current location.
 // params: {
+//   "type": "location",
 //   "location": {
 //     "x": 105.0,
 //     "y": 40.0,
@@ -97,16 +98,20 @@ message Action {
 //
 // Example 3: Move towards the target entity.
 // params: {
-//   "target": true
+//   "type": "target"
 // }
 //
-// The STOP action is used to stop the entity from moving. It is a simplified
-// version of the MOVE action with a zero direction. This action has no params.
+// Example 4: Stop moving. It is a simplified as "type": "direction" with a zero
+// direction.
+// params: {
+//   "type": "stop"
+// }
 //
 // The LOOK action is used to change the entity's facing direction.
 //
 // Example 1: Look towards a specific direction.
 // params: {
+//   "type": "direction",
 //   "direction": {
 //     "x": 1.0,
 //     "y": 0.0,
@@ -116,6 +121,7 @@ message Action {
 //
 // Example 2: Look towards a specific location.
 // params: {
+//   "type": "location",
 //   "location": {
 //     "x": 105.0,
 //     "y": 40.0,
@@ -125,25 +131,41 @@ message Action {
 //
 // Example 3: Look towards the target entity.
 // params: {
-//   "target": true
+//   "type": "target"
 // }
 //
-// TARGET action is used to target a specific entity. The target can be used
+// TARGET action is used to target (or to stop targetting) a specific entity. The target can be used
 // by other actions, including MOVE, LOOK, and ATTACK.
 //
-// Example: Target a k-th nearest living entity of a specific type.
+// Example 1: Target a k-th nearest living entity of a specific type.
 // The type should be a valid entity type of minecraft, such as "zombie" and
 // "player". If the type is not specified or invalid, all living entities will
 // be considered. If k is not specified, the nearest entity will be considered.
 // params: {
+//   "type": "start",
 //   "entity": {
 //     "type": "zombie",
 //     "k": 2
 //   }
 // }
 //
-// ATTACK action is used to attack the target entity. It can only be used
+// Example 2: Stop targetting the current target.
+// params: {
+//   "type": "stop"
+// }
+//
+// ATTACK action is used to attack (or to stop attacking) the target entity. It can only be used
 // after the TARGET has been specified. It has no params.
+//
+// Example 1: Attack the current target.
+// params: {
+//   "type": "start"
+// }
+//
+// Example 2: Stop attacking the current target.
+// params: {
+//   "type": "stop"
+// }
 //
 // JUMP action is used to make the entity jump. It has no params. If the entity
 // is in water, it will swim up instead of jumping.
