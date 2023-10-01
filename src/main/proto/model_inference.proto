@@ -167,5 +167,15 @@ message Action {
 //   "type": "stop"
 // }
 //
-// JUMP action is used to make the entity jump. It has no params. If the entity
+// JUMP action is used to make the entity jump (or to stop jumping). If the entity
 // is in water, it will swim up instead of jumping.
+//
+// Example 1: Jump.
+// params: {
+//   "type": "start"
+// }
+//
+// Example 2: Stop jumping.
+// params: {
+//   "type": "stop"
+// }

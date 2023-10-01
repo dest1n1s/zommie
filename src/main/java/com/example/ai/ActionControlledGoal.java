@@ -2,10 +2,9 @@ package com.example.ai;
 
 import java.util.EnumSet;
 
-import javax.annotation.Nullable;
-
 import com.example.ZommieZombieEntity;
 import com.example.ai.control.ZommieAttackControl;
+import com.example.ai.control.ZommieJumpControl;
 import com.example.ai.control.ZommieLookControl;
 import com.example.ai.control.ZommieMoveControl;
 import com.example.ai.control.ZommieTargetControl;
@@ -21,6 +20,7 @@ public class ActionControlledGoal extends Goal {
     private ZommieAttackControl attackControl;
     private ZommieLookControl lookControl;
     private ZommieTargetControl targetControl;
+    private ZommieJumpControl jumpControl;
 
     public ActionControlledGoal(ZommieZombieEntity mob) {
         this.mob = mob;
@@ -29,6 +29,11 @@ public class ActionControlledGoal extends Goal {
         this.attackControl = new ZommieAttackControl(mob);
         this.lookControl = new ZommieLookControl(mob);
         this.targetControl = new ZommieTargetControl(mob);
+        this.jumpControl = new ZommieJumpControl(mob);
+    }
+
+    public ZommieZombieEntity getMob() {
+        return mob;
     }
 
     @Override
@@ -37,13 +42,14 @@ public class ActionControlledGoal extends Goal {
     }
 
     @Override
-    public boolean tick() {
+    public void tick() {
         noActionTimeout = Math.max(noActionTimeout - 1, 0);
 
         moveControl.tick();
         attackControl.tick();
         lookControl.tick();
         targetControl.tick();
+        jumpControl.tick();
     }
 
     public void executeAction(Action action) {
@@ -179,6 +185,21 @@ public class ActionControlledGoal extends Goal {
             return targetControl.startTargeting(k, targetType);
         } else if (type == "stop") {
             targetControl.stopTargeting();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean executeJumpAction(com.google.protobuf.Struct actionParams) {
+        if (!actionParams.containsFields("type") || !actionParams.getFieldsOrThrow("type").hasStringValue()) {
+            return false;
+        }
+        var type = actionParams.getFieldsOrThrow("type").getStringValue();
+        if (type == "start") {
+            jumpControl.startJumping();
+            return true;
+        } else if (type == "stop") {
+            jumpControl.stopJumping();
             return true;
         }
         return false;
