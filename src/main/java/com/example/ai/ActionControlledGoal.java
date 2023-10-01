@@ -39,21 +39,38 @@ public class ActionControlledGoal extends Goal {
     @Override
     public boolean canStart() {
         return noActionTimeout > 0;
+        // return true;
     }
 
     @Override
     public void tick() {
         noActionTimeout = Math.max(noActionTimeout - 1, 0);
-
         moveControl.tick();
         attackControl.tick();
         lookControl.tick();
         targetControl.tick();
         jumpControl.tick();
+
+        // if (this.mob.age % 20 == 0 || this.mob.age % 20 == 1) {
+        //     Zommie.LOGGER.info("mob age: " + this.mob.age);
+        //     this.targetControl.startTargeting(1, null);
+        //     this.moveControl.moveToTarget();
+        //     this.lookControl.lookAtTarget();
+        //     this.attackControl.startAttacking();
+        // }
+    }
+
+    @Override
+    public void stop() {
+        moveControl.stop();
+        attackControl.stop();
+        lookControl.stop();
+        targetControl.stop();
+        jumpControl.stop();
     }
 
     public void executeAction(Action action) {
-        noActionTimeout = 20;
+        noActionTimeout = 100;
         switch (action.getType()) {
             case MOVE:
                 executeMoveAction(action.getParams());
@@ -72,6 +89,12 @@ public class ActionControlledGoal extends Goal {
                 break;
             default:
                 break;
+        }
+    }
+
+    public void executeActions(Iterable<Action> actions) {
+        for (var action : actions) {
+            executeAction(action);
         }
     }
 
@@ -106,7 +129,7 @@ public class ActionControlledGoal extends Goal {
         } else if (type == "target") {
             return moveControl.moveToTarget();
         } else if (type == "stop") {
-            moveControl.stop();
+            moveControl.stopMoving();
             return true;
         }
         return false;
@@ -158,7 +181,7 @@ public class ActionControlledGoal extends Goal {
         } else if (type == "target") {
             return lookControl.lookAtTarget();
         } else if (type == "reset") {
-            lookControl.reset();
+            lookControl.resetLookDirection();
             return true;
         }
         return false;

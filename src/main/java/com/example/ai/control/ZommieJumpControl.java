@@ -35,4 +35,9 @@ public class ZommieJumpControl extends ZommieControl {
     public void stopJumping() {
         jumping = false;
     }
+
+    @Override
+    public void stop() {
+        stopJumping();
+    }
 }

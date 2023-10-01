@@ -6,13 +6,14 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 
-import com.example.ai.PersistantJumpGoal;
+import com.example.ai.ActionControlledGoal;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 public class ZommieZombieEntity extends ZombieEntity {
+    ActionControlledGoal controlledGoal;
 
     public ZommieZombieEntity(EntityType<? extends ZommieZombieEntity> entityType, World world) {
         super(entityType, world);
@@ -20,7 +21,8 @@ public class ZommieZombieEntity extends ZombieEntity {
 
     @Override
     protected void initGoals() {
-        this.goalSelector.add(0, new PersistantJumpGoal(this));
+        controlledGoal = new ActionControlledGoal(this);
+        this.goalSelector.add(0, controlledGoal);
     }
 
     @Override

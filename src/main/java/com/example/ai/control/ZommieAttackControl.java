@@ -41,6 +41,11 @@ public class ZommieAttackControl extends ZommieControl {
         mob.setAttacking(false);
     }
 
+    @Override
+    public void stop() {
+        stopAttacking();
+    }
+
     private boolean isAttackable(LivingEntity target) {
         var squaredDistance = mob.getSquaredDistanceToAttackPosOf(target);
         var squaredMaxAttackDistance = getSquaredMaxAttackDistance(target);

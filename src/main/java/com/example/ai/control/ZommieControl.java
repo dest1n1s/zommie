@@ -10,4 +10,7 @@ public abstract class ZommieControl {
     }
 
     public abstract void tick();
+
+    public void stop() {
+    }
 }

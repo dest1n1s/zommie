@@ -84,8 +84,13 @@ public class ZommieLookControl extends ZommieControl {
         return true;
     }
 
-    public void reset() {
+    public void resetLookDirection() {
         this.type = LookControlType.RESET;
+    }
+
+    @Override
+    public void stop() {
+        resetLookDirection();
     }
     
     private enum LookControlType {

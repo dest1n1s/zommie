@@ -4,22 +4,16 @@ import javax.annotation.Nullable;
 
 import com.example.ZommieZombieEntity;
 
-import net.minecraft.entity.ai.pathing.EntityNavigation;
-import net.minecraft.entity.ai.pathing.MobNavigation;
 import net.minecraft.util.math.Vec3d;
 
 public class ZommieMoveControl extends ZommieControl {
     private MoveControlType type = MoveControlType.WAIT;
     private @Nullable Vec3d direction = null;
     private double speed;
-    private EntityNavigation navigation;
 
     public ZommieMoveControl(ZommieZombieEntity mob, double speed) {
         super(mob);
         this.speed = speed;
-        this.navigation = new MobNavigation(mob, mob.getWorld());
-        this.navigation.setCanSwim(true);
-        this.navigation.setSpeed(speed);
     }
 
     @Override
@@ -32,8 +26,8 @@ public class ZommieMoveControl extends ZommieControl {
                 break;
             case LOCATION:
             case TARGET:
-                navigation.tick();
-                if (navigation.isIdle()) {
+                mob.getNavigation().tick();
+                if (mob.getNavigation().isIdle()) {
                     type = MoveControlType.WAIT;
                 }
                 break;
@@ -56,17 +50,22 @@ public class ZommieMoveControl extends ZommieControl {
 
     public boolean moveToLocation(Vec3d location) {
         this.type = MoveControlType.LOCATION;
-        return navigation.startMovingTo(location.getX(), location.getY(), location.getZ(), speed);
+        return mob.getNavigation().startMovingTo(location.getX(), location.getY(), location.getZ(), speed);
     }
 
     public boolean moveToTarget() {
         this.type = MoveControlType.TARGET;
-        return mob.getTarget() != null && navigation.startMovingTo(mob.getTarget(), speed);
+        return mob.getTarget() != null && mob.getNavigation().startMovingTo(mob.getTarget(), speed);
     }
 
-    public void stop() {
+    public void stopMoving() {
         this.type = MoveControlType.WAIT;
-        navigation.stop();
+        mob.getNavigation().stop();
+    }
+
+    @Override
+    public void stop() {
+        stopMoving();
     }
 
     private enum MoveControlType {
