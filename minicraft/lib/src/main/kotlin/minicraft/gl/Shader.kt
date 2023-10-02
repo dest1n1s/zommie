@@ -52,7 +52,7 @@ class Program(private val shaders: List<Shader>) {
     operator fun get(name: String) =
         glGetUniformLocation(program ?: throw IllegalStateException("Program not linked yet"), name)
 
-    fun link(destroyShaders: Boolean = false) {
+    fun link(destroyShadersAfterLink: Boolean = false) {
         if (program != null) return
 
         val program = glCreateProgram()
@@ -65,7 +65,7 @@ class Program(private val shaders: List<Shader>) {
             throw IllegalStateException("Failed to link shader program: ${glGetProgramInfoLog(program)}")
         }
 
-        if (destroyShaders) shaders.forEach { it.destroy() }
+        if (destroyShadersAfterLink) shaders.forEach { it.destroy() }
     }
 
     fun destroy() {

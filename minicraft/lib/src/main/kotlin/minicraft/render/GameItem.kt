@@ -8,9 +8,9 @@ import org.joml.Vector3f
 abstract class GameItem(
     protected var mesh: Mesh?,
 ) : RenderItem() {
-    private val worldPos = Vector3f()
-    private val rotation = Vector3f()
-    private var scale = 1f
+    val worldPos = Vector3f()
+    val rotation = Vector3f()
+    var scale = 1f
 
     fun modelMatrix() = Matrix4f()
         .translate(worldPos)
