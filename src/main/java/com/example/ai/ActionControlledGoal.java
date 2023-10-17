@@ -2,6 +2,7 @@ package com.example.ai;
 
 import java.util.EnumSet;
 
+import com.example.Zommie;
 import com.example.ZommieZombieEntity;
 import com.example.ai.control.ZommieAttackControl;
 import com.example.ai.control.ZommieJumpControl;
@@ -52,11 +53,11 @@ public class ActionControlledGoal extends Goal {
         jumpControl.tick();
 
         // if (this.mob.age % 20 == 0 || this.mob.age % 20 == 1) {
-        //     Zommie.LOGGER.info("mob age: " + this.mob.age);
-        //     this.targetControl.startTargeting(1, null);
-        //     this.moveControl.moveToTarget();
-        //     this.lookControl.lookAtTarget();
-        //     this.attackControl.startAttacking();
+        // Zommie.LOGGER.info("mob age: " + this.mob.age);
+        // this.targetControl.startTargeting(1, null);
+        // this.moveControl.moveToTarget();
+        // this.lookControl.lookAtTarget();
+        // this.attackControl.startAttacking();
         // }
     }
 
@@ -71,6 +72,7 @@ public class ActionControlledGoal extends Goal {
 
     public void executeAction(Action action) {
         noActionTimeout = 100;
+        Zommie.LOGGER.info(action.getType().toString());
         switch (action.getType()) {
             case MOVE:
                 executeMoveAction(action.getParams());
@@ -103,7 +105,8 @@ public class ActionControlledGoal extends Goal {
             return false;
         }
         var type = actionParams.getFieldsOrThrow("type").getStringValue();
-        if (type == "direction") {
+
+        if (type.equals("direction")) {
             if (!actionParams.containsFields("direction")) {
                 return false;
             }
@@ -113,9 +116,10 @@ public class ActionControlledGoal extends Goal {
             } catch (Exception e) {
                 return false;
             }
+
             moveControl.moveAlongDirection(direction);
             return true;
-        } else if (type == "location") {
+        } else if (type.equals("location")) {
             if (!actionParams.containsFields("location")) {
                 return false;
             }
@@ -126,9 +130,9 @@ public class ActionControlledGoal extends Goal {
                 return false;
             }
             return moveControl.moveToLocation(location);
-        } else if (type == "target") {
+        } else if (type.equals("target")) {
             return moveControl.moveToTarget();
-        } else if (type == "stop") {
+        } else if (type.equals("stop")) {
             moveControl.stopMoving();
             return true;
         }
@@ -140,9 +144,9 @@ public class ActionControlledGoal extends Goal {
             return false;
         }
         var type = actionParams.getFieldsOrThrow("type").getStringValue();
-        if (type == "start") {
+        if (type.equals("start")) {
             return attackControl.startAttacking();
-        } else if (type == "stop") {
+        } else if (type.equals("stop")) {
             attackControl.stopAttacking();
             return true;
         }
@@ -154,7 +158,8 @@ public class ActionControlledGoal extends Goal {
             return false;
         }
         var type = actionParams.getFieldsOrThrow("type").getStringValue();
-        if (type == "direction") {
+
+        if (type.equals("direction")) {
             if (!actionParams.containsFields("direction")) {
                 return false;
             }
@@ -166,21 +171,22 @@ public class ActionControlledGoal extends Goal {
             }
             lookControl.lookAtDirection(direction);
             return true;
-        } else if (type == "location") {
+        } else if (type.equals("location")) {
             if (!actionParams.containsFields("location")) {
                 return false;
             }
             Vec3d location;
             try {
                 location = convertProtobufValueToVec3d(actionParams.getFieldsOrThrow("location"));
+                Zommie.LOGGER.info(location.toString());
             } catch (Exception e) {
                 return false;
             }
             lookControl.lookAtLocation(location);
             return true;
-        } else if (type == "target") {
+        } else if (type.equals("target")) {
             return lookControl.lookAtTarget();
-        } else if (type == "reset") {
+        } else if (type.equals("reset")) {
             lookControl.resetLookDirection();
             return true;
         }
@@ -192,8 +198,8 @@ public class ActionControlledGoal extends Goal {
             return false;
         }
         var type = actionParams.getFieldsOrThrow("type").getStringValue();
-        if (type == "start") {
-            if (!actionParams.containsFields("entity") || !actionParams.getFieldsOrThrow("entity").hasStructValue()){
+        if (type.equals("start")) {
+            if (!actionParams.containsFields("entity") || !actionParams.getFieldsOrThrow("entity").hasStructValue()) {
                 return false;
             }
             var entityParams = actionParams.getFieldsOrThrow("entity").getStructValue();
@@ -206,7 +212,7 @@ public class ActionControlledGoal extends Goal {
                 targetType = entityParams.getFieldsOrThrow("type").getStringValue();
             }
             return targetControl.startTargeting(k, targetType);
-        } else if (type == "stop") {
+        } else if (type.equals("stop")) {
             targetControl.stopTargeting();
             return true;
         }
@@ -218,10 +224,10 @@ public class ActionControlledGoal extends Goal {
             return false;
         }
         var type = actionParams.getFieldsOrThrow("type").getStringValue();
-        if (type == "start") {
+        if (type.equals("start")) {
             jumpControl.startJumping();
             return true;
-        } else if (type == "stop") {
+        } else if (type.equals("stop")) {
             jumpControl.stopJumping();
             return true;
         }
