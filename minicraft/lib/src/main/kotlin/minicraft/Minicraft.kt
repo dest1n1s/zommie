@@ -35,6 +35,9 @@ class Minicraft(
     }
 
     override fun setup() {
+        glfwSetErrorCallback { error, description ->
+            println("GLFW Error $error: $description")
+        }
         if (!glfwInit()) {
             throw IllegalStateException("Unable to initialize GLFW")
         }
@@ -149,15 +152,15 @@ class Minicraft(
     override fun destroy() {
         gameItems.forEach { it.destroy() }
         shaderProgram.destroy()
-        glfwTerminate()
+        glfwDestroyWindow(window)
     }
 }
 
 fun main() {
-    val cam = Camera(eye= Vector3f(0f, 3f, 3f))
+    val cam = Camera(eye = Vector3f(0f, 3f, 3f))
     val minicraft = Minicraft(windowVisible = false, keepRenderLoop = false, camera = cam)
-    for(i in -20..20) {
-        for(j in -20..20) {
+    for (i in -20..20) {
+        for (j in -20..20) {
             minicraft.gameItems.add(Cube("textures/grass.png").apply {
 
                 worldPos.set(i.toFloat(), Random().nextInt(2).toFloat(), j.toFloat())

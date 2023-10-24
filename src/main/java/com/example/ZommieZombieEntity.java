@@ -94,6 +94,7 @@ public class ZommieZombieEntity extends ZombieEntity {
 		}
 		minicraft.setup();
 		var png = minicraft.renderFrame();
+		minicraft.destroy();
 		return png;
 	}
 
